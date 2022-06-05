@@ -1,15 +1,22 @@
+import scraping
 import sys
-from flask import Flask, render_template, jsonify, redirect
-import pymongo
-import scrape_mars
-## importing the module needed for this project
+from flask import Flask, render_template, redirect, url_for, jsonify
+from flask_pymongo import PyMongo
 
-sys.setrecursionlimit(2000)
+### Importing the module needed for this project
+
 app = Flask(__name__)
 
-client = pymongo.MongoClient()
-db = client.mars_db
-collection = db.mars_facts
+# Use flask_PyMongo to set up mongo connection
+app.config["MONGO_URI"] = "mongodb://localhost:27017/mars_app"
+mongodb_client = PyMongo(app)
+db = mongodb_client.db
+
+@app.route("/")
+def index():
+    mars = mongo.db.mars.find_one()
+    return render_template("index.html", mars=mars)
+    #### rendeing the index page for the site
 
 @app.route('/scrape')
 def scrape():
@@ -18,13 +25,7 @@ def scrape():
 
     db.mars_facts.insert_one(mars)
     return "Some scrapped data"
-
-@app.route("/")
-def home():
-    mars = list(db.mars_facts.find())
-    print(mars)
-    return render_template("index.html", mars = mars)
-    ### rendeing the index page for the site
-
+    
 if __name__ == "__main__":
     app.run(debug=True)
+
